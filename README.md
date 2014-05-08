@@ -37,3 +37,5 @@ public static class Application {
 
 }
 ```
+
+Run the app and then load the HTML page at http://localhost:8080.
