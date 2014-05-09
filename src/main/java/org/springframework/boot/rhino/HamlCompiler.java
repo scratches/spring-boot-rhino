@@ -33,6 +33,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.StreamUtils;
 
 /**
+ * Compiler for <a href="https://github.com/creationix/haml-js">haml.js</a>
+ * templates.
  * 
  * @author Dave Syer
  *
@@ -71,9 +73,10 @@ public class HamlCompiler {
 			Scriptable compileScope = context.newObject(globalScope);
 			compileScope.setParentScope(globalScope);
 			compileScope.put("hamlSource", compileScope, haml);
-			Template compiled = new Template(globalScope, (String) context.evaluateString(compileScope,
-					"Haml.optimize(Haml.compile(hamlSource));", "HamlCompiler",
-					0, null));
+			Template compiled = new Template(globalScope,
+					(String) context.evaluateString(compileScope,
+							"Haml.optimize(Haml.compile(hamlSource));",
+							"HamlCompiler", 0, null));
 			return compiled;
 		} catch (JavaScriptException e) {
 			throw new IllegalStateException("Cannot compile", e);
@@ -96,7 +99,7 @@ public class HamlCompiler {
 	public void setCharset(String charSet) {
 		this.charset = Charset.forName(charSet);
 	}
-	
+
 	public static class Template {
 
 		private String script;
@@ -105,7 +108,7 @@ public class HamlCompiler {
 		public Template(Scriptable scope, String script) {
 			this.parentScope = scope;
 			this.script = script;
-			
+
 		}
 
 		public String getScript() {
@@ -119,7 +122,8 @@ public class HamlCompiler {
 				public Object wrap(Context cx, Scriptable scope, Object obj,
 						Class<?> staticType) {
 					if (obj instanceof Collection) {
-						return super.wrap(cx, scope, new NativeJavaCollection(scope, (Collection<?>) obj), staticType);
+						return super.wrap(cx, scope, new NativeJavaCollection(
+								scope, (Collection<?>) obj), staticType);
 					}
 					return super.wrap(cx, scope, obj, staticType);
 				}
@@ -127,9 +131,8 @@ public class HamlCompiler {
 			try {
 				Scriptable scope = new NativeJavaScriptable(parentScope, root);
 				scope.setParentScope(parentScope);
-				String result = (String) context.evaluateString(scope,
-						script, "Template",
-						0, null);
+				String result = (String) context.evaluateString(scope, script,
+						"Template", 0, null);
 				return result;
 			} catch (JavaScriptException e) {
 				throw new RuntimeException("Unable to execute " + script, e);
