@@ -19,12 +19,15 @@ package org.springframework.boot.rhino;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.Collection;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.springframework.boot.rhino.util.NativeIndexableObject;
+import org.mozilla.javascript.WrapFactory;
+import org.springframework.boot.rhino.util.NativeJavaCollection;
+import org.springframework.boot.rhino.util.NativeJavaScriptable;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.StreamUtils;
@@ -68,7 +71,6 @@ public class HamlCompiler {
 			Scriptable compileScope = context.newObject(globalScope);
 			compileScope.setParentScope(globalScope);
 			compileScope.put("hamlSource", compileScope, haml);
-			compileScope.put("out", compileScope, Context.javaToJS(System.out, compileScope));
 			Template compiled = new Template(globalScope, (String) context.evaluateString(compileScope,
 					"Haml.optimize(Haml.compile(hamlSource));", "HamlCompiler",
 					0, null));
@@ -112,8 +114,18 @@ public class HamlCompiler {
 
 		public String execute(Object root) {
 			Context context = Context.enter();
+			context.setWrapFactory(new WrapFactory() {
+				@Override
+				public Object wrap(Context cx, Scriptable scope, Object obj,
+						Class<?> staticType) {
+					if (obj instanceof Collection) {
+						return super.wrap(cx, scope, new NativeJavaCollection(scope, (Collection<?>) obj), staticType);
+					}
+					return super.wrap(cx, scope, obj, staticType);
+				}
+			});
 			try {
-				Scriptable scope = new NativeIndexableObject(parentScope, root);
+				Scriptable scope = new NativeJavaScriptable(parentScope, root);
 				scope.setParentScope(parentScope);
 				String result = (String) context.evaluateString(scope,
 						script, "Template",

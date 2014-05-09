@@ -16,18 +16,15 @@
 
 package org.springframework.boot.rhino.util;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.Undefined;
-import org.mozilla.javascript.Wrapper;
 
-@SuppressWarnings({"unchecked", "rawtypes"})
-public class NativeIndexableObject extends NativeJavaObject {
+@SuppressWarnings({ "unchecked", "rawtypes" })
+public class NativeJavaMap extends NativeJavaObject {
 
 	private static final long serialVersionUID = 3686149074336728382L;
 
@@ -35,39 +32,8 @@ public class NativeIndexableObject extends NativeJavaObject {
 	Map map;
 	final static String CLASSNAME = "NativeMap";
 
-	public NativeIndexableObject(Scriptable scope, Object obj) {
-		this.parent = scope;
-		if (obj instanceof Wrapper) {
-			obj = ((Wrapper) obj).unwrap();
-		}
-		if (obj instanceof Map) {
-			this.map = (Map) obj;
-		} else if (obj == null || obj == Undefined.instance) {
-			this.map = new HashMap();
-		} else if (!(obj instanceof Scriptable)) {
-			obj = new NativeJavaObject(scope, obj, null);
-		}
-		if (obj instanceof Scriptable) {
-			this.map = new HashMap();
-			Scriptable s = (Scriptable) obj;
-			Object[] ids = s.getIds();
-			for (Object id : ids) {
-				if (id instanceof String) {
-					map.put(id, s.get((String) id, s));
-				} else if (id instanceof Number) {
-					map.put(id, s.get(((Number) id).intValue(), s));
-				}
-			}
-		}
-		this.javaObject = this.map;
-		this.staticType = this.map.getClass();
-		initMembers();
-		initPrototype(scope);
-
-	}
-
-	public NativeIndexableObject(Scriptable scope, Map map) {
-		super(scope, map, map.getClass());
+	public NativeJavaMap(Scriptable scope, Map map) {
+		super(scope, map, null);
 		this.map = map;
 		initPrototype(scope);
 	}
@@ -87,6 +53,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public Object get(String name, Scriptable start) {
 		if (map == null || (reflect && super.has(name, start))) {
 			return super.get(name, start);
@@ -94,6 +61,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		return getInternal(name);
 	}
 
+	@Override
 	public Object get(int index, Scriptable start) {
 		if (map == null) {
 			return super.get(index, start);
@@ -109,6 +77,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		return Context.javaToJS(value, getParentScope());
 	}
 
+	@Override
 	public boolean has(String name, Scriptable start) {
 		if (map == null || (reflect && super.has(name, start))) {
 			return super.has(name, start);
@@ -117,6 +86,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public boolean has(int index, Scriptable start) {
 		if (map == null) {
 			return super.has(index, start);
@@ -125,6 +95,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public void put(String name, Scriptable start, Object value) {
 		if (map == null || (reflect && super.has(name, start))) {
 			super.put(name, start, value);
@@ -133,6 +104,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public void put(int index, Scriptable start, Object value) {
 		if (map == null) {
 			super.put(index, start, value);
@@ -149,6 +121,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public void delete(String name) {
 		if (map != null) {
 			try {
@@ -161,6 +134,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public void delete(int index) {
 		if (map != null) {
 			try {
@@ -173,6 +147,7 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public Object[] getIds() {
 		if (map == null) {
 			return super.getIds();
@@ -181,18 +156,21 @@ public class NativeIndexableObject extends NativeJavaObject {
 		}
 	}
 
+	@Override
 	public String toString() {
 		if (map == null)
 			return super.toString();
 		return map.toString();
 	}
 
+	@Override
 	public Object getDefaultValue(Class typeHint) {
 		return toString();
 	}
 
+	@Override
 	public Object unwrap() {
-		return map;
+		return map==null ? map : this.javaObject;
 	}
 
 	public Map getMap() {

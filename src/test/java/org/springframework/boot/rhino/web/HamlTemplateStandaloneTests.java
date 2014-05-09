@@ -26,7 +26,7 @@ public class HamlTemplateStandaloneTests {
 	@Autowired
 	private HamlCompiler compiler;
 
-	@Value("classpath:/templates/foo.html")
+	@Value("classpath:/templates/foo.html.haml")
 	private Resource simple;
 
 	public String getWorld() {

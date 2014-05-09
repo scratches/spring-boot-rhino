@@ -27,7 +27,7 @@ public class HamlProperties {
 
 	private String prefix = "classpath:/templates/";
 
-	private String suffix = ".html";
+	private String suffix = ".html.haml";
 
 	private String contentType = "text/html";
 
